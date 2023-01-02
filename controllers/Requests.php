@@ -1,21 +1,9 @@
 <?php
-
-require_once './RequestController.php';
+require_once "./models/MySQL.php";
 
 class DefaultAction {
 	protected string $url;
 	protected string $method;
-
-	protected function request() {
-		$payload = null;
-		
-		/* If method is POST, get the data and prepare to send to API */ 
-		if ($this->method === "POST") {	
-			$payload = file_get_contents("php://input"); // Get the JSON object (already decoded, we don't need to transform)
-		}
-
-		return RequestController::defaultCurl(PAGARME_CORE_URL.$this->url, $this->method, $payload);
-	}
 
 	public function urlTreatment(string $received_method, array $array = null) {
 		$this->method = $received_method;
@@ -34,122 +22,142 @@ class DefaultAction {
 			}
 		}
 		
-		return $this->request();
+		// return $this->request();
+		var_dump($this->url);
 	}
 }
 
-class Tokens extends DefaultAction {
-	protected string $url = 'core/v5/tokens?';
+class Clients extends DefaultAction {
+	protected string $url;
+	private array $allowed_methods = ["POST", "GET", "DELETE"];
 
 	public function urlTreatment(string $received_method, array $array = null) {
-		// This method only accept POST requests
-		if ($received_method !== 'POST') {
-			return '{"status": false, "message": "The requested resource does not support HTTP method other than POST!"}';
+		
+		// Check for invalid methods 
+		if (!in_array($received_method, $this->allowed_methods, true)) {
+			return '{"status": false, "message": "Invalid HTTP method!"}';
 		} 
 
 		$this->method = $received_method;
-	
-		if (empty($array) || count($array) > 1) {
-			return '{"status": false, "message": "Incorrect action usage!"}';
 
-		} else {
-			// Concat Tokens URL with paramter to create card token Ex: https://api.pagar.me/core/v5/tokens?appId=public_key
-			$this->url = $this->url . $array[0];
-			return $this->request();
+		$client = new Client();
+
+		switch ($this->method) {
+			case 'POST':
+				// TODO VALIDATE INCOMING DATA
+				// If method is POST, get the data and prepare to send to API
+				$payload = file_get_contents("php://input"); // Get the JSON object (already decoded, we don't need to transform)
+				$client->uid = $payload['uid'];
+				$client->nome = $payload['nome'];
+				$client->cpf = $payload['cpf'];
+				$client->endereco = $payload['endereco'];
+				$client->email = $payload['email'];
+				$client->nascimento = $payload['nascimento'];
+				$client->image = $payload['image'];
+
+				return $client->upsert($client);
+
+			case 'GET':
+				// Check if there is an UID in actions array
+				$uid = null;
+				if (!empty($array) && count($array) > 0 && $array[0] != "") {
+					$uid = $array[0];
+				}
+				return $client->select($uid);
+				
+			case 'DELETE':
+				// Check if there is an UID in actions array
+				$uid = null;
+				if (!empty($array) && count($array) > 0 && $array[0] != "") {
+					$uid = $array[0];
+				}
+				return $client->remove($uid);
 		}
 	}
 }
 
-class Orders extends DefaultAction {
-	protected string $url = 'core/v5/orders';
+class Products extends DefaultAction {
+	protected string $url;
+	private array $allowed_methods = ["POST", "GET", "DELETE"];
 
 	public function urlTreatment(string $received_method, array $array = null) {
+		
+		// Check for invalid methods 
+		if (!in_array($received_method, $this->allowed_methods, true)) {
+			return '{"status": false, "message": "Invalid HTTP method!"}';
+		} 
+
 		$this->method = $received_method;
 
-		if (!empty($array) && strpos($array[0], '?')) {
-			// Concat Orders URL with customer parameter and/or others to create full URL
-			// Ex: https://api.pagar.me/core/v5/orders?customer_id=abcdefg
-			$this->url = $this->url . $array[0];
+		$product = new Product();
 
-			// Check if there is a store filter (?store=storeId)
-			if (strpos($array[0], 'store=')) {
-				$allOrders = $this->request();
-	
-				// Filter orders with store code
-				print_r($allOrders);
-				exit();
-			}
+		switch ($this->method) {
+			case 'POST':
+				// TODO VALIDATE INCOMING DATA
+				// If method is POST, get the data and prepare to send to API
+				$payload = file_get_contents("php://input"); // Get the JSON object (already decoded, we don't need to transform)
+				$product->uid = $payload['uid'];
+				$product->nome = $payload['nome'];
+				$product->valor = $payload['valor'];
+				$product->image = $payload['image'];
 
-		} else {
-			// DEFAULT ACTION
-			// Get next action, if there is any
-			if (!empty($array)) {
-				// Get last key from array, in this case an index
-				$last = array_key_last($array);
+				return $product->upsert($product);
 
-				foreach ($array as $key => $value) {
-					// Check if action is not an empty string 
-					// (when using like /orders/, the split method will create an empty string in last position)
-					if ($value !== '') {	
-						// Concat actions to URL
-						// If we are in last iteration, don't apply '/' in the string's end
-						$this->url = $key === $last ? $this->url . $value : $this->url . $value . '/';
-					}
+			case 'GET':
+				// Check if there is an UID in actions array
+				$uid = null;
+				if (!empty($array) && count($array) > 0 && $array[0] != "") {
+					$uid = $array[0];
 				}
-			}			
+				return $product->select($uid);
+				
+			case 'DELETE':
+				// Check if there is an UID in actions array
+				$uid = null;
+				if (!empty($array) && count($array) > 0 && $array[0] != "") {
+					$uid = $array[0];
+				}
+				return $product->remove($uid);
 		}
-		
-		return $this->request();
 	}
 }
 
-class Customers extends DefaultAction {
-	protected string $url = 'core/v5/customers/';
-}
-
-class Charges extends DefaultAction {
-	protected string $url = 'core/v5/charges/';
+class Sales extends DefaultAction {
+	protected string $url;
+	private array $allowed_methods = ["GET", "POST"];
 
 	public function urlTreatment(string $received_method, array $array = null) {
+		
+		// Check for invalid methods 
+		if (!in_array($received_method, $this->allowed_methods, true)) {
+			return '{"status": false, "message": "Invalid HTTP method!"}';
+		} 
+
 		$this->method = $received_method;
 
-		if (!empty($array)) {
-			// Get last key from array, in this case an index
-			$last = array_key_last($array);
+		$sale = new Sale();
 
-			foreach ($array as $key => $value) {
-				// Check if action is not an empty string 
-				// (when using like /charges/, the split method will create an empty string in last position)
-				if ($value !== '') {	
-					// Concat actions to URL
-					// If we are in last iteration, don't apply '/' in the string's end
-					$this->url = $key === $last ? $this->url . $value : $this->url . $value . '/';
-				}
-			}
+		switch ($this->method) {
+			case 'POST':
+				// TODO VALIDATE INCOMING DATA
+				// If method is POST, get the data and prepare to send to API
+				$payload = file_get_contents("php://input"); // Get the JSON object (already decoded, we don't need to transform)
+
+				// Format products to array of products UIDs
+				$pIds = array_map(function($o) { return $o->uid;}, $payload['products']); // NOT AN ERROR! Intelephense bug
+
+				$sale->uid = $payload['uid'];
+				$sale->data = $payload['data'];
+				$sale->user_uid = $payload['user']['uid'];
+				$sale->products_uids = json_encode($pIds);
+				$sale->total = $payload['total'];
+
+				return $sale->insert($sale);
+
+			case 'GET':				
+				return $sale->select();
 		}
-		
-		return $this->request();
 	}
-}
-
-class Subscriptions extends DefaultAction {
-	protected string $url = 'core/v5/subscriptions/';
-}
-
-class Plans extends DefaultAction {
-	protected string $url = 'core/v5/plans/';
-}
-
-class Invoices extends DefaultAction {
-	protected string $url = 'core/v5/invoices/';
-}
-
-class Recipients extends DefaultAction {
-	protected string $url = 'core/v5/recipients/';
-}
-
-class Bin extends DefaultAction {
-	protected string $url = 'bin/v1/bin/';
 }
 
 ?>

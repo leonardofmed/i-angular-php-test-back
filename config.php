@@ -1,6 +1,7 @@
 <?php
-define("PRIVATE_KEY_PAGARME", "sk_test_n6jOZWdi7etZqeg1"); // TODO CHANGE TO REAL KEY
-//define("PRIVATE_KEY_PAGARME", "sk_9WyjZxeSvQf7O64w");
-define("PAGARME_CORE_URL", "https://api.pagar.me/");
-define("ACTIONS_UNIVERSE", ['orders', 'customers', 'charges', 'tokens']);
+define("HOST", "localhost"); // wktest.epizy.com
+define("USER", "epiz_33306047");
+define("PWD", ""); // TODO ADD INFO
+define("DB", "epiz_33306047_main");
+define("ACTIONS_UNIVERSE", ['products', 'sales', 'clients']);
 ?>
