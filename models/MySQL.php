@@ -68,7 +68,7 @@ class Client extends Connection {
     }
 
     public function insert(Client $client) {
-        $sql = $this->mysqli->query("INSERT INTO clients (uid, nome, cpf, endereco, email, nascimento, image) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $sql = "INSERT INTO clients (uid, nome, cpf, endereco, email, nascimento, image) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->mysqli->prepare($sql);
         $stmt->bind_param("sssssss", ...[$client->uid, $client->nome, $client->cpf, $client->endereco, $client->email, $client->nascimento, $client->image]);
         $stmt->execute();
@@ -117,7 +117,7 @@ class Product extends Connection {
     }
 
     public function insert(Product $product) {
-        $sql = $this->mysqli->query("INSERT INTO products (uid, nome, valor, image) VALUES (?, ?, ?, ?)");
+        $sql = "INSERT INTO products (uid, nome, valor, image) VALUES (?, ?, ?, ?)";
         $stmt = $this->mysqli->prepare($sql);
         $stmt->bind_param("ssss", ...[$product->uid, $product->nome, $product->valor, $product->image]);
         $stmt->execute();
@@ -155,7 +155,7 @@ class Sale extends Connection {
     public string $uid, $data, $user_uid, $products_uids, $total;
 
     public function insert(Sale $sale) {
-        $sql = $this->mysqli->query("INSERT INTO sales (uid, data, user_uid, products_uids, total) VALUES (?, ?, ?, ?, ?)");
+        $sql = "INSERT INTO sales (uid, data, user_uid, products_uids, total) VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->mysqli->prepare($sql);
         $stmt->bind_param("ssss", ...[$sale->uid, $sale->data, $sale->user_uid, $sale->products_uids, $sale->total]);
         $stmt->execute();

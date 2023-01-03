@@ -45,19 +45,16 @@ class Clients extends DefaultAction {
 			case 'POST':
 				// TODO VALIDATE INCOMING DATA
 				// If method is POST, get the data and prepare to send to API
-				$payload = file_get_contents("php://input"); // Get the JSON object (already decoded, we don't need to transform)
+				$payload = json_decode(file_get_contents("php://input"), true); // Decode string data and transform in array format
 				$client->uid = $payload['uid'];
 				$client->nome = $payload['nome'];
 				$client->cpf = $payload['cpf'];
-				$client->endereco = $payload['endereco'];
+				$client->endereco = json_encode($payload['endereco']);
 				$client->email = $payload['email'];
 				$client->nascimento = $payload['nascimento'];
 				$client->image = $payload['image'];
 
-				var_dump($payload);
-				var_dump($client);
-
-				//$client->upsert($client);
+				$client->upsert($client);
 				return '{"status": true, "message": "Novo cliente adicionado com sucesso!"}';
 
 			case 'GET':
@@ -66,7 +63,7 @@ class Clients extends DefaultAction {
 				if (!empty($array) && count($array) > 0 && $array[0] != "") {
 					$uid = $array[0];
 				}
-				return json_encode($client->select($uid)->fetch_all());
+				return json_encode($client->select($uid)->fetch_all(MYSQLI_ASSOC));
 				
 			case 'DELETE':
 				// Check if there is an UID in actions array
