@@ -1,5 +1,6 @@
 <?php
-require_once "./models/MySQL.php";
+require_once __DIR__."/../config.php";
+require_once SITE_ROOT."/models/MySQL.php";
 
 class DefaultAction {
 	protected string $url;
@@ -36,13 +37,11 @@ class Clients extends DefaultAction {
 		// Check for invalid methods 
 		if (!in_array($received_method, $this->allowed_methods, true)) {
 			return '{"status": false, "message": "Invalid HTTP method!"}';
-		} 
-
-		$this->method = $received_method;
+		}
 
 		$client = new Client();
 
-		switch ($this->method) {
+		switch ($received_method) {
 			case 'POST':
 				// TODO VALIDATE INCOMING DATA
 				// If method is POST, get the data and prepare to send to API
@@ -55,7 +54,11 @@ class Clients extends DefaultAction {
 				$client->nascimento = $payload['nascimento'];
 				$client->image = $payload['image'];
 
-				return $client->upsert($client);
+				var_dump($payload);
+				var_dump($client);
+
+				//$client->upsert($client);
+				return '{"status": true, "message": "Novo cliente adicionado com sucesso!"}';
 
 			case 'GET':
 				// Check if there is an UID in actions array
@@ -63,7 +66,7 @@ class Clients extends DefaultAction {
 				if (!empty($array) && count($array) > 0 && $array[0] != "") {
 					$uid = $array[0];
 				}
-				return $client->select($uid);
+				return json_encode($client->select($uid)->fetch_all());
 				
 			case 'DELETE':
 				// Check if there is an UID in actions array
@@ -159,5 +162,3 @@ class Sales extends DefaultAction {
 		}
 	}
 }
-
-?>

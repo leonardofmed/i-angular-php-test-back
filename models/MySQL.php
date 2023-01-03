@@ -1,5 +1,5 @@
 <?php
-require_once "./config.php";
+require_once __DIR__."/../config.php";
 
 class Connection {
     protected $mysqli;
@@ -58,12 +58,12 @@ class Client extends Connection {
 
     public function upsert(Client $client) {
         $exist = $this->select($client->uid);
-        if ($exist && mysqli_num_rows($exist) > 0) {
+        if ($exist && $exist->num_rows > 0) {
             // Update
-            $this->update($client);
+            return $this->update($client);
         } else {
             // Insert
-            $this->insert($client);
+            return $this->insert($client);
         }
     }
 
