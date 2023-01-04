@@ -13,7 +13,7 @@ class Connection {
     
 }
 
-// TODO default connection
+// TODO default request connection (only populate necessary variables)
 class DefaultRequest extends Connection {
 
     public function insert() {        

@@ -41,8 +41,8 @@ if ($_GET['url']) {
 			// Get REQUEST_METHOD type (GET, POST, DELETE)
 			$method = $_SERVER['REQUEST_METHOD'];
 
-			// Get methods
-			$methodsArray = array_slice($url, 2);
+			// Get parameter (remove first action)
+			$methodsArray = array_slice($url, 1);
 			
 			// Get auth header and check authentication (TODO)
 			// $headers = getallheaders();			
