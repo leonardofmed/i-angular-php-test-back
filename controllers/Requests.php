@@ -55,7 +55,7 @@ class Clients extends DefaultAction {
 				$client->image = $payload['image'];
 
 				$client->upsert($client);
-				return '{"status": true, "message": "Novo cliente adicionado com sucesso!"}';
+				return '{"status": true, "message": "Cliente adicionado/atualizado com sucesso!"}';
 
 			case 'GET':
 				// Check if there is an UID in actions array
@@ -63,13 +63,21 @@ class Clients extends DefaultAction {
 				if (!empty($array) && count($array) > 0 && $array[0] != "") {
 					$uid = $array[0];
 				}
-				return json_encode($client->select($uid)->fetch_all(MYSQLI_ASSOC));
+				$list_of_clients = $client->select($uid)->fetch_all(MYSQLI_ASSOC);
+
+				// Return the address parsed
+				foreach ($list_of_clients as $key => $data) {
+					$list_of_clients[$key]['endereco'] = json_decode($data['endereco']);
+				}
+				return json_encode($list_of_clients);
 				
 			case 'DELETE':
 				// Check if there is an UID in actions array
 				$uid = null;
 				if (!empty($array) && count($array) > 0 && $array[0] != "") {
 					$uid = $array[0];
+				} else {
+					return '{"status": false, "message": "UID informado na requisição é inválido!"}';
 				}
 				return $client->remove($uid);
 		}
