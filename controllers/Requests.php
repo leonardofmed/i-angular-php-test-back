@@ -79,7 +79,8 @@ class Clients extends DefaultAction {
 				} else {
 					return '{"status": false, "message": "UID informado na requisição é inválido!"}';
 				}
-				return $client->remove($uid);
+				$client->remove($uid);
+				return '{"status": true, "message": "Cliente removido com sucesso!"}';
 		}
 	}
 }
@@ -117,15 +118,18 @@ class Products extends DefaultAction {
 				if (!empty($array) && count($array) > 0 && $array[0] != "") {
 					$uid = $array[0];
 				}
-				return $product->select($uid);
+				return json_encode($product->select($uid));
 				
 			case 'DELETE':
 				// Check if there is an UID in actions array
 				$uid = null;
 				if (!empty($array) && count($array) > 0 && $array[0] != "") {
 					$uid = $array[0];
+				} else {
+					return '{"status": false, "message": "UID informado na requisição é inválido!"}';
 				}
-				return $product->remove($uid);
+				$product->remove($uid);
+				return '{"status": true, "message": "Produto removido com sucesso!"}';
 		}
 	}
 }
@@ -151,6 +155,8 @@ class Sales extends DefaultAction {
 				// If method is POST, get the data and prepare to send to API
 				$payload = file_get_contents("php://input"); // Get the JSON object (already decoded, we don't need to transform)
 
+				var_dump($payload); // TODO REMOVE
+
 				// Format products to array of products UIDs
 				$pIds = array_map(function($o) { return $o->uid;}, $payload['products']); // NOT AN ERROR! Intelephense bug
 
@@ -160,10 +166,11 @@ class Sales extends DefaultAction {
 				$sale->products_uids = json_encode($pIds);
 				$sale->total = $payload['total'];
 
-				return $sale->insert($sale);
+				$sale->insert($sale);				
+				return '{"status": true, "message": "Nova venda registrada com sucesso!"}';
 
 			case 'GET':				
-				return $sale->select();
+				return json_encode($sale->select());
 		}
 	}
 }
