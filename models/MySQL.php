@@ -127,7 +127,7 @@ class Product extends Connection {
     public function update(Product $product) {
         $sql = "UPDATE products SET nome = ?, valor = ?, image = ? WHERE uid = ?";
         $stmt = $this->mysqli->prepare($sql);
-        $stmt->bind_param("sssssss", ...[$product->nome, $product->valor, $product->image, $product->uid]);
+        $stmt->bind_param("ssss", ...[$product->nome, $product->valor, $product->image, $product->uid]);
         $stmt->execute();
         $stmt->close();
     }
@@ -157,7 +157,7 @@ class Sale extends Connection {
     public function insert(Sale $sale) {
         $sql = "INSERT INTO sales (uid, data, user_uid, products_uids, total) VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->mysqli->prepare($sql);
-        $stmt->bind_param("ssss", ...[$sale->uid, $sale->data, $sale->user_uid, $sale->products_uids, $sale->total]);
+        $stmt->bind_param("sssss", ...[$sale->uid, $sale->data, $sale->user_uid, $sale->products_uids, $sale->total]);
         $stmt->execute();
         $stmt->close();
     }

@@ -2,33 +2,9 @@
 require_once __DIR__."/../config.php";
 require_once SITE_ROOT."/models/MySQL.php";
 
-class DefaultAction {
-	protected string $url;
-	protected string $method;
+// TODO CREATE A DEFAULT ACTION CLASS TO EXTEND TO OTHERS
 
-	public function urlTreatment(string $received_method, array $array = null) {
-		$this->method = $received_method;
-
-		// Get next action, if there is any
-		$i = 0;
-		if (!empty($array)) {
-			foreach ($array as $value) {
-				// Check if action is not an empty string 
-				// (when using like /orders/, the split method will create a empty string in last position)
-				if ($value !== '') {	
-					// Concat actions to URL
-					$this->url = $this->url . $value . '/';
-					$i++;
-				}
-			}
-		}
-		
-		// return $this->request();
-		var_dump($this->url);
-	}
-}
-
-class Clients extends DefaultAction {
+class Clients {
 	protected string $url;
 	private array $allowed_methods = ["POST", "GET", "DELETE"];
 
@@ -85,7 +61,7 @@ class Clients extends DefaultAction {
 	}
 }
 
-class Products extends DefaultAction {
+class Products {
 	protected string $url;
 	private array $allowed_methods = ["POST", "GET", "DELETE"];
 
@@ -94,23 +70,22 @@ class Products extends DefaultAction {
 		// Check for invalid methods 
 		if (!in_array($received_method, $this->allowed_methods, true)) {
 			return '{"status": false, "message": "Invalid HTTP method!"}';
-		} 
-
-		$this->method = $received_method;
+		}
 
 		$product = new Product();
 
-		switch ($this->method) {
+		switch ($received_method) {
 			case 'POST':
 				// TODO VALIDATE INCOMING DATA
 				// If method is POST, get the data and prepare to send to API
-				$payload = file_get_contents("php://input"); // Get the JSON object (already decoded, we don't need to transform)
+				$payload = json_decode(file_get_contents("php://input"), true); // Get the JSON object (already decoded, we don't need to transform)
 				$product->uid = $payload['uid'];
 				$product->nome = $payload['nome'];
 				$product->valor = $payload['valor'];
 				$product->image = $payload['image'];
 
-				return $product->upsert($product);
+				$product->upsert($product);
+				return '{"status": true, "message": "Produto adicionado/atualizado com sucesso!"}';
 
 			case 'GET':
 				// Check if there is an UID in actions array
@@ -118,7 +93,7 @@ class Products extends DefaultAction {
 				if (!empty($array) && count($array) > 0 && $array[0] != "") {
 					$uid = $array[0];
 				}
-				return json_encode($product->select($uid));
+				return json_encode($product->select($uid)->fetch_all(MYSQLI_ASSOC));
 				
 			case 'DELETE':
 				// Check if there is an UID in actions array
@@ -134,7 +109,7 @@ class Products extends DefaultAction {
 	}
 }
 
-class Sales extends DefaultAction {
+class Sales {
 	protected string $url;
 	private array $allowed_methods = ["GET", "POST"];
 
@@ -143,19 +118,15 @@ class Sales extends DefaultAction {
 		// Check for invalid methods 
 		if (!in_array($received_method, $this->allowed_methods, true)) {
 			return '{"status": false, "message": "Invalid HTTP method!"}';
-		} 
-
-		$this->method = $received_method;
+		}
 
 		$sale = new Sale();
 
-		switch ($this->method) {
+		switch ($received_method) {
 			case 'POST':
 				// TODO VALIDATE INCOMING DATA
 				// If method is POST, get the data and prepare to send to API
-				$payload = file_get_contents("php://input"); // Get the JSON object (already decoded, we don't need to transform)
-
-				var_dump($payload); // TODO REMOVE
+				$payload = json_decode(file_get_contents("php://input"), true); // Get the JSON object (already decoded, we don't need to transform)
 
 				// Format products to array of products UIDs
 				$pIds = array_map(function($o) { return $o->uid;}, $payload['products']); // NOT AN ERROR! Intelephense bug
@@ -170,7 +141,7 @@ class Sales extends DefaultAction {
 				return '{"status": true, "message": "Nova venda registrada com sucesso!"}';
 
 			case 'GET':				
-				return json_encode($sale->select());
+				return json_encode($sale->select()->fetch_all(MYSQLI_ASSOC));
 		}
 	}
 }
