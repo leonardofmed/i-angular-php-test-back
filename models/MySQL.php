@@ -1,5 +1,5 @@
 <?php
-require_once "./config.php";
+require_once __DIR__."/../config.php";
 
 class Connection {
     protected $mysqli;
@@ -13,7 +13,7 @@ class Connection {
     
 }
 
-// TODO default connection
+// TODO default request connection (only populate necessary variables)
 class DefaultRequest extends Connection {
 
     public function insert() {        
@@ -58,17 +58,17 @@ class Client extends Connection {
 
     public function upsert(Client $client) {
         $exist = $this->select($client->uid);
-        if ($exist && mysqli_num_rows($exist) > 0) {
+        if ($exist && $exist->num_rows > 0) {
             // Update
-            $this->update($client);
+            return $this->update($client);
         } else {
             // Insert
-            $this->insert($client);
+            return $this->insert($client);
         }
     }
 
     public function insert(Client $client) {
-        $sql = $this->mysqli->query("INSERT INTO clients (uid, nome, cpf, endereco, email, nascimento, image) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $sql = "INSERT INTO clients (uid, nome, cpf, endereco, email, nascimento, image) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->mysqli->prepare($sql);
         $stmt->bind_param("sssssss", ...[$client->uid, $client->nome, $client->cpf, $client->endereco, $client->email, $client->nascimento, $client->image]);
         $stmt->execute();
@@ -117,7 +117,7 @@ class Product extends Connection {
     }
 
     public function insert(Product $product) {
-        $sql = $this->mysqli->query("INSERT INTO products (uid, nome, valor, image) VALUES (?, ?, ?, ?)");
+        $sql = "INSERT INTO products (uid, nome, valor, image) VALUES (?, ?, ?, ?)";
         $stmt = $this->mysqli->prepare($sql);
         $stmt->bind_param("ssss", ...[$product->uid, $product->nome, $product->valor, $product->image]);
         $stmt->execute();
@@ -127,7 +127,7 @@ class Product extends Connection {
     public function update(Product $product) {
         $sql = "UPDATE products SET nome = ?, valor = ?, image = ? WHERE uid = ?";
         $stmt = $this->mysqli->prepare($sql);
-        $stmt->bind_param("sssssss", ...[$product->nome, $product->valor, $product->image, $product->uid]);
+        $stmt->bind_param("ssss", ...[$product->nome, $product->valor, $product->image, $product->uid]);
         $stmt->execute();
         $stmt->close();
     }
@@ -152,12 +152,12 @@ class Product extends Connection {
 }
 
 class Sale extends Connection {
-    public string $uid, $data, $user_uid, $products_uids, $total;
+    public string $uid, $data, $user, $products, $total;
 
     public function insert(Sale $sale) {
-        $sql = $this->mysqli->query("INSERT INTO sales (uid, data, user_uid, products_uids, total) VALUES (?, ?, ?, ?, ?)");
+        $sql = "INSERT INTO sales (uid, data, user, products, total) VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->mysqli->prepare($sql);
-        $stmt->bind_param("ssss", ...[$sale->uid, $sale->data, $sale->user_uid, $sale->products_uids, $sale->total]);
+        $stmt->bind_param("sssss", ...[$sale->uid, $sale->data, $sale->user, $sale->products, $sale->total]);
         $stmt->execute();
         $stmt->close();
     }

@@ -1,10 +1,11 @@
 <?php
-
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: *");
+header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
 header('Content-Type: application/json');
-require_once './Controllers/Requests.php';
-require_once './config.php';
+
+require_once __DIR__.'/controllers/Requests.php';
+require_once __DIR__.'/config.php';
 
 // FOR DEBUG USAGE ONLY
 // ini_set('display_errors', 1);
@@ -12,19 +13,18 @@ require_once './config.php';
 // error_reporting(E_ALL);
 
 // Friendly URL configuration
-//if ($_GET['url']) {
-if (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
+if ($_GET['url']) {
 	// Break the URL using the forward slash as a reference point, 
-	// separating the strings into an array 
-	$url = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
-	array_shift($url); // Remove empty string from first element of array
-
+	// separating the strings into an array
+	$url = explode('/', $_GET['url']);
+	//array_shift($url); // Remove empty string from first element of array
 	// Check if the first element is related to our API
 	// Ex: http://example.com/api/action
-	if ($url[0] === 'api') {
+	//if ($url[0] === 'api') {
+	if (in_array($url[0], ACTIONS_UNIVERSE, true)) {
 		// Check if action demanded is valid
-		if (isset($url[1]) && !empty($url[1])) {	
-			$action = strtolower($url[1]); // Get the action to be performed
+		if (isset($url[0]) && !empty($url[0])) {	
+			$action = strtolower($url[0]); // Get the action to be performed
 
 			$numOfParams = count($url);
 			if ($numOfParams > 3) { // Bigger action is /client/client_id
@@ -41,8 +41,8 @@ if (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
 			// Get REQUEST_METHOD type (GET, POST, DELETE)
 			$method = $_SERVER['REQUEST_METHOD'];
 
-			// Get methods
-			$methodsArray = array_slice($url, 2);
+			// Get parameter (remove first action)
+			$methodsArray = array_slice($url, 1);
 			
 			// Get auth header and check authentication (TODO)
 			// $headers = getallheaders();			
@@ -77,4 +77,10 @@ if (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH)) {
 		echo '{"status": false, "message": "Utilização inválida da API, caminho não reconhecido!"}';
 		exit;
 	}
+
+} else {
+	// Invalid usage of API
+	echo '{"status": false, "message": "Utilização inválida da API, caminho não reconhecido!", "code": 2}';
+	exit;
 }
+?>
