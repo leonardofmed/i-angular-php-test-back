@@ -152,12 +152,12 @@ class Product extends Connection {
 }
 
 class Sale extends Connection {
-    public string $uid, $data, $user_uid, $products_uids, $total;
+    public string $uid, $data, $user, $products, $total;
 
     public function insert(Sale $sale) {
-        $sql = "INSERT INTO sales (uid, data, user_uid, products_uids, total) VALUES (?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO sales (uid, data, user, products, total) VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->mysqli->prepare($sql);
-        $stmt->bind_param("sssss", ...[$sale->uid, $sale->data, $sale->user_uid, $sale->products_uids, $sale->total]);
+        $stmt->bind_param("sssss", ...[$sale->uid, $sale->data, $sale->user, $sale->products, $sale->total]);
         $stmt->execute();
         $stmt->close();
     }

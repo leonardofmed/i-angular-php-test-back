@@ -129,19 +129,29 @@ class Sales {
 				$payload = json_decode(file_get_contents("php://input"), true); // Get the JSON object (already decoded, we don't need to transform)
 
 				// Format products to array of products UIDs
-				$pIds = array_map(function($o) { return $o->uid;}, $payload['products']); // NOT AN ERROR! Intelephense bug
+				//$pIds = array_map(function($o) { return $o["uid"];}, $payload['products']); // NOT AN ERROR! Intelephense bug
 
 				$sale->uid = $payload['uid'];
-				$sale->data = $payload['data'];
-				$sale->user_uid = $payload['user']['uid'];
-				$sale->products_uids = json_encode($pIds);
+				$sale->data = $payload['data'];;
+				$sale->user = json_encode($payload['user']);
+				$sale->products = json_encode($payload['products']);
 				$sale->total = $payload['total'];
+				//$sale->user_uid = $payload['user']['uid'];
+				//$sale->products_uids = json_encode($pIds)
 
 				$sale->insert($sale);				
 				return '{"status": true, "message": "Nova venda registrada com sucesso!"}';
 
 			case 'GET':				
-				return json_encode($sale->select()->fetch_all(MYSQLI_ASSOC));
+				//return json_encode($sale->select()->fetch_all(MYSQLI_ASSOC));
+				
+				$list_of_products_uids = $sale->select()->fetch_all(MYSQLI_ASSOC);
+				// Return the uids parsed
+				foreach ($list_of_products_uids as $key => $data) {
+					$list_of_products_uids[$key]["products"] = json_decode($data["products"]);
+					$list_of_products_uids[$key]["user"] = json_decode($data["user"]);
+				}
+				return json_encode($list_of_products_uids);
 		}
 	}
 }
